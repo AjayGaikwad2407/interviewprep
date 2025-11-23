@@ -1,3 +1,58 @@
 branching strategy
-git merge vs git rebase
-git cherrypick
+    GitFlow
+    GitHub Flow
+    Trunk-based development
+    Release branching
+    Feature branching
+
+Explain GitFlow branching strategy.
+Branches:
+main (production)
+develop
+feature
+release
+hotfix
+Used in enterprise projects.
+
+What is the difference between git merge and git rebase?
+Merge	                        Rebase
+Creates a merge commit	    Moves commits on top of another branch
+Preserves history	        Rewrites history
+Safe	                    Cleaner history
+
+
+What is the difference between Git and GitHub?
+Git	                            GitHub
+Version control system	    Cloud hosting service for Git repos
+Local operations	        Collaboration, PRs, CI/CD
+CLI tool	                Web platform
+
+See commit history - git log
+How do you undo the last commit but keep changes - git reset --soft HEAD~1
+
+What is git cherry-pick? 
+    It copies a specific commit from one branch to another:
+    git cherry-pick <commit_id>
+
+What is the difference between git reset and git revert?
+Reset	                        Revert
+Rewrites history	        Keeps history
+Dangerous in shared repos	Safe
+Deletes commits	            Adds new commit
+
+Git LFS  = Git Large File Storage — used to store large files like videos, models, datasets.
+
+
+You want to apply only 1 commit from a different branch. What do you use?
+git cherry-pick <commit-id>
+
+You pushed a wrong commit to main. How do you undo it?
+git revert <commit_id>
+git push
+
+You deleted a branch accidentally. How do you recover it?
+git reflog
+git checkout -b branchname <commit_id>
+
+You merged wrong branch into main. How do you undo?
+git revert -m 1 <merge_commit_id>

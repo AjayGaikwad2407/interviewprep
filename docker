@@ -64,3 +64,367 @@ Can we have multiple CMD in dockerfile
 Add vs copy
 
 Basic command to check logs
+
+======================================================================================================
+1. What is Docker?
+
+Docker is an open-source platform that allows you to build, package, and run applications inside lightweight containers.
+It ensures consistency across environments (dev → QA → prod).
+
+2. What is a Docker Container?
+A container is a lightweight, isolated environment that packages:
+Application code
+Dependencies
+Libraries
+Configuration
+Containers share the host OS kernel → faster and more efficient than VMs.
+
+3. What is a Docker Image?
+An image is a read-only template used to create containers.
+It includes:
+OS base
+Code
+Required packages
+
+4. Difference between Docker Image and Docker Container
+Docker Image                Docker Container
+Blueprint/template      Running instance
+Read-only               Read/Write layer
+Stored in registry      Runs on Docker engine
+
+5. What is Dockerfile?
+A Dockerfile is a set of instructions used for building a Docker image.
+Example:
+FROM node:18
+COPY . .
+RUN npm install
+CMD ["npm", "start"]
+
+
+6. What is Docker Hub?
+Docker Hub is a public image registry where developers store and share Docker images.
+
+7. What is the difference between CMD and ENTRYPOINT?
+CMD                     ENTRYPOINT
+Default command         Main command
+Can be overridden       Hard to override
+Example: CMD ["npm","start"]Example: ENTRYPOINT ["python"]
+
+8. What is the difference between COPY and ADD?
+COPY → Only copies files.
+ADD → COPY + supports remote URLs + auto-extracts tar files.
+Use COPY in most cases.
+
+9. What is a Docker Volume?
+A volume is a persistent storage mechanism used to store data outside container's filesystem.
+
+10. What is a Docker Network?
+Docker network allows containers to communicate:
+bridge
+host
+Overlay
+none
+
+✅ 2. Intermediate Docker Interview Questions
+11. How to check running containers?
+docker ps
+
+12. How to check all containers including stopped?
+docker ps -a
+
+13. How to view logs of a container?
+docker logs <container_id>
+
+14. How to enter into a running container?
+docker exec -it <container_id> bash
+
+15. What is a Multi-Stage Build? Why is it used?
+Multi-stage builds allow you to:
+Build code in one stage
+Copy only the required output to the final image
+Benefits:
+Smaller image size
+Secure, no build tools in final image
+
+Example:
+FROM node:18 AS builder
+WORKDIR /app
+COPY . .
+RUN npm install && npm run build
+
+FROM nginx
+COPY --from=builder /app/build /usr/share/nginx/html
+
+
+16. What is Docker Compose?
+Compose helps to run multi-container apps using a YAML file.
+Example:
+version: "3"
+services:
+  app:
+    image: node-app
+  db:
+    image: mysql
+
+Run:
+docker compose up -d
+
+17. How to expose ports while running a container?
+docker run -p 8080:80 nginx
+Host port → 8080
+Container port → 80
+
+18. What is the difference between Docker Swarm and Kubernetes?
+Docker Swarm                Kubernetes
+Simple, lightweight         Complex, enterprise-grade
+Less features               Rich features
+Built-in in Docker          Separate installation
+
+19. What is an Overlay Network in Docker?
+Overlay network is used for multi-host communication in Docker Swarm or Compose.
+
+20. What is the use of .dockerignore file?
+It excludes files from the image build context.
+Example:
+node_modules
+.env
+.git
+
+✅ 3. Advanced Docker Interview Questions
+21. What is Docker Layer Caching?
+Every instruction in Dockerfile creates a layer.
+Docker reuses layers if no change → faster builds.
+
+22. How to reduce Docker image size?
+Use Alpine base images
+Use multi-stage builds
+Use .dockerignore
+Remove unwanted tools
+Combine RUN commands
+Use --no-cache carefully
+
+23. What is the difference between Entrypoint and Command?
+You can combine both:
+ENTRYPOINT ["python"]
+CMD ["app.py"]
+Final command → python app.py
+
+24. How does Docker isolate containers?
+Namespaces (PID, NET, IPC, MNT, UTS)
+Cgroups (resource limits)
+Copy-on-write filesystem
+
+25. What is Ulimit in Docker?
+Set resource limits:
+ulimits:
+  nofile: 1024
+
+26. How do you monitor Docker containers?
+Tools:
+docker stats
+Prometheus + Grafana
+cAdvisor
+Sysdig
+
+27. How to clean unused Docker resources?
+docker system prune -a
+
+28. What is Docker Build Context?
+Files/folders sent to Docker daemon during build.
+Large context → slow builds → use .dockerignore.
+
+29. What is the difference between Bind Mount and Volume?
+Bind MountVolumeHost path neededManaged by DockerLess portablePortableNot safeSafe
+
+30. What happens internally when you run docker run?
+Pull image
+Create container
+Allocate filesystem
+Create network
+Assign IP
+Start container
+Run ENTRYPOINT/CMD
+
+31. What is the purpose of Docker Registry?
+A registry stores Docker images. Examples: Docker Hub, Azure Container Registry, ECR, GCR.
+
+32. How do you tag an image in Docker?
+docker tag nginx myrepo/nginx:v1
+
+33. How do you push an image to Docker Hub?
+docker login
+docker push username/image:tag
+
+34. How to stop a running container?
+docker stop <id>
+
+35. How to remove a container?
+docker rm <id>
+
+36. How to remove an image?
+docker rmi <image_id>
+
+37. What is the difference between docker run and docker start?
+run → creates + starts
+start → starts an existing stopped container
+
+38. How to inspect container details?
+docker inspect <id>
+
+39. How to copy files from container to host?
+docker cp <container>:/path/in/container ./local
+
+40. How to limit CPU and memory for a container?
+docker run --cpus="1.5" --memory="1g" image
+
+🚀 ⚡ Advanced Docker Questions
+41. What is the Docker storage driver?
+Manages container filesystem. Popular drivers:
+overlay2 (default)
+btrfs
+zfs
+aufs
+Overlay2 is the most efficient.
+
+42. What is the difference between Docker Engine and Docker Daemon?
+Docker Engine: Client (CLI)
+Docker Daemon: Background service that manages containers
+
+43. How does Docker achieve portability?
+Using:
+Immutable images
+Layered filesystem
+Isolated runtime
+
+44. Explain the Docker Architecture.
+Components:
+Docker client
+Docker daemon
+Docker registry
+Docker objects (containers, images, volumes, networks)
+
+45. What are Docker namespaces?
+Namespaces isolate container resources:
+PID
+NET
+IPC
+UTS
+MNT
+
+46. What are Docker cgroups?
+Control Groups → limit CPU, memory, I/O resources for containers.
+
+47. How does Docker networking work?
+Default networks:
+bridge (default)
+host
+overlay
+none
+Used for container-to-container communication.
+
+48. What is the difference between Host network and Bridge network?
+Bridge	            Host
+Default	        Shares host network
+Separate IP     No isolation
+Secure	        Faster
+
+49. What is a dangling image?
+Images not tagged and not used.
+Remove: docker image prune
+
+50. What are common Docker security best practices?
+Use non-root user
+Use minimal base images
+Scan images
+Enable TLS for daemon
+Keep secrets out of images
+Use read-only filesystem
+
+🚀 ⚡ Docker Troubleshooting Questions
+51. App inside container is not accessible on host. What will you check?
+Container port exposed?
+Host-port mapped correctly? (-p 8080:80)
+Application listening on 0.0.0.0?
+Firewall rules
+
+52. Docker container exiting immediately — reasons?
+No foreground process
+ENTRYPOINT/CMD failure
+Wrong shell script with missing #!/bin/bash
+Application crash
+
+53. Image build is slow — what do you check?
+Build context too large
+Missing .dockerignore
+Too many layers
+No caching
+
+54. Container takes high CPU — what will you do?
+docker stats
+Set CPU limits
+Review loops in app
+Check logs
+Restart only if required
+
+55. Docker volume not mounting — reasons?
+Incorrect volume path
+Folder permissions
+SELinux blocking
+Wrong driver
+
+🚀 ⚡ Docker Compose Questions
+56. How do you scale a Docker Compose service?
+docker-compose up --scale web=5 -d
+
+57. How to verify which containers are created by Compose?
+docker-compose ps
+
+58. How do networks work in Docker Compose?
+Compose automatically creates:
+One default network per project
+Each service acts as hostname
+
+Example:
+web can access db using db:3306.
+
+59. Difference between version 2 and version 3 Docker Compose?
+Version 2	                            Version 3
+Supports depends_on, resources	    Designed for Swarm
+More local features	                Limited, focuses on deploy keys
+
+60. How do you override Compose files?
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+61. You have an image of 1.5GB. How will you reduce it?
+Use Alpine image
+Multi-stage build
+Remove cache files
+Merge RUN commands
+Use .dockerignore
+
+62. Your Node app works locally but fails inside container. What do you check?
+Missing dependencies
+Environment variables
+Exposed ports
+Node version mismatch
+File permissions
+
+63. Your Docker container cannot connect to external DB. How do you troubleshoot?
+Check DB host/IP
+Network mode
+DNS resolution
+Check firewall/security groups
+Ping DB from inside container
+
+64. You want zero-downtime deployment using Docker. How?
+Use Docker Swarm
+Use Kubernetes
+Rolling updates
+Blue/Green deployment
+
+65. Jenkins pipeline failing on Docker build. Why?
+Permission issues
+Docker daemon not running
+Low disk space
+Missing Dockerfile
+Wrong context PATH
