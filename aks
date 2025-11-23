@@ -1,0 +1,52 @@
+Helm commands
+Helm sub chart
+Helm versioning
+Helm roleout deployment
+Error we face if liveness and rediness prob is failing
+Service discovery
+Troubleshooting if two pods not communicate each other
+Restricrt two pods communication
+Clusterip vs nodeport
+Achive canary deployment in aks
+Static pods
+Aks monitoring
+configure application gateway with AKS
+
+
+    🔹 1. Control Plane Components
+        These manage the overall cluster state.
+        ✅ API Server (kube-apiserver)
+            Entry point for all Kubernetes commands (kubectl, REST API, other components).
+            Validates and processes API requests.
+            Stores the desired state in etcd.
+        ✅ etcd
+            A distributed key-value store.
+            Stores all cluster data (desired + current state).
+            Example: deployments, pod definitions, config maps, secrets.
+            Highly available (usually deployed as a cluster).
+        ✅ Controller Manager (kube-controller-manager)
+            Runs background controllers that ensure the desired state = current state.
+            Examples:
+            Node controller → Monitors node health.
+            Replication controller → Ensures correct number of pod replicas.
+            Endpoint controller → Manages service endpoints.
+        ✅ Scheduler (kube-scheduler)
+            Decides which node runs a new Pod.
+            Considers:
+            Resource requests (CPU, memory).
+            Affinity/anti-affinity rules.
+            Taints/tolerations.
+            Workload balancing.
+    🔹 2. Worker Node Components
+        These run the actual application workloads.
+        ✅ Kubelet
+            Agent running on each node.
+            Communicates with the API server.
+            Ensures containers in pods are running as expected (via container runtime).
+        ✅ Kube-proxy
+            Manages network rules on each node.
+            Enables service discovery and routing.
+            Handles traffic load-balancing to backend pods.
+        ✅ Container Runtime
+            The actual engine that runs containers.
+            Examples: containerd, CRI-O, Docker (deprecated for kubelet).

@@ -1,0 +1,58 @@
+Terraform
+Error we can face at terraform init
+Lifecycle in terraform
+Modules vs resources
+If block in terraform
+Dynamic block
+count vs forearch
+Provider vs provisionar
+Delete perticular resource
+How to handle multiple update on terraform at same time
+Issues we can face at time of terraform plan
+Errors we can face at time of terraform apply
+Terraform workspace and module
+
+AKS
+Helm commands
+Helm sub chart
+Helm versioning
+Helm roleout deployment
+Error we face if liveness and redyness prob is failing
+Service discovery
+Troubleshooting if two pods not communicate each other
+Restricrt two pods communication
+Clusterip vs nodeport
+Achive canary deployment in aks
+Static pods
+Aks monitoring
+
+Ansible
+static and dynamic host
+host files
+ansible templates
+
+Azure
+Private endpoint vs service endpoint
+types of load balancer
+
+Docker
+Dockerfile vs container
+Reduce size of docker image
+CMD vs entrypoint
+
+Azure devops
+Run single task multiple time parallely
+Explain build pipeline
+Manage secret in pipeline
+If build is taking long time how we can reduce
+If while running build got error like disk space issue
+Declarative vs scripted pipeline
+
+git
+branching strategy
+git merge vs git rebase
+git cherrypick
+
+
+
+

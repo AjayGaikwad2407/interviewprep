@@ -1,0 +1,92 @@
+Ansible commands:
+    ansible all -i hosts.ini -m ping  #Ping all hosts
+    ansible all -m shell -a "uptime" # RUn shell commands
+    ansible all -m commands -a  #run without shell
+    ansible web -m apt -a "name=nginx state=present" -b #install pkg
+    ansible web -m copy -a "src=./index.html dest=/var/www/html/index.html" # copy to remote host
+    ansible web -m fetch -a "src=/etc/hosts dest=./hosts_backup/" # fetch from remote host
+    ansible-playbook -i hosts.ini site.yml #run playbook
+    ansible-playbook -i hosts.ini site.yml --check #dry run
+    
+
+static and dynamic host
+    🔹 1. Static Inventory
+        You manually define hosts and groups in a simple file (hosts.ini or hosts.yaml).
+        Best for small, fixed environments where servers don’t change often.
+            Example (hosts.ini):
+                [web]
+                192.168.1.10
+                192.168.1.11
+                [db]
+                db01 ansible_host=192.168.1.20
+
+            👉 You run:
+            ansible -i hosts.ini web -m ping
+        ✅ Pros:
+        Simple and easy to set up.
+        Good for lab or static infra.
+        ❌ Cons:
+        Doesn’t scale well if infra is large or changing.
+
+    🔹 2. Dynamic Inventory
+        Inventory is fetched from a cloud/service provider API instead of hardcoding.
+        Useful for cloud environments (AWS, Azure, GCP, Kubernetes, etc.) where hosts are created/destroyed frequently.
+        Example: AWS EC2 (using plugin)
+        aws_ec2.yaml:
+
+            plugin: aws_ec2
+            regions:
+            - ap-south-1
+            filters:
+            tag:
+                Role: web
+            keyed_groups:
+            - key: tags.Name
+
+        azure_rm.yml:
+        
+            plugin: azure.azcollection.azure_rm
+            include_vm_resource_groups:
+            - my-rg
+            auth_source: auto
+            keyed_groups:
+            - prefix: azure
+                key: tags
+
+
+        Run:
+        ansible-inventory -i aws_ec2.yaml --list
+
+        👉 Ansible queries AWS via API and fetches all instances with Role=web.
+        ✅ Pros:
+        Auto-discovers hosts.
+        No need to update inventory files manually.
+        Perfect for cloud & autoscaling environments.
+        ❌ Cons:
+        Needs IAM/service principal/credentials.
+        More complex to set up.
+
+host files
+    The host file (inventory) tells Ansible which machines to manage.
+    Can be written in INI or YAML format.
+    Can be static (manually maintained) or dynamic (plugins for cloud).
+
+    ini format
+
+    [web]
+    192.168.1.10
+    192.168.1.11 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+    [db]
+    db01 ansible_host=192.168.1.20 ansible_user=ec2-user
+
+
+roles vs playbooks:
+    🔹 Roles
+        A role is a structured, reusable collection of tasks, handlers, templates, files, and variables.
+        Encourages modularity and code reusability.
+        Useful when you have complex infrastructure with many components.
+    🔹 Playbooks
+        A playbook is a YAML file that defines tasks to run on a set of hosts.
+        It’s the main file you execute with ansible-playbook.
+        Playbooks are usually flat and task-oriented.

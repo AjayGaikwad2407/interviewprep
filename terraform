@@ -1,0 +1,246 @@
+Dynamic block
+    A dynamic block in Terraform lets you generate nested blocks dynamically based on a variable, list, or map.
+    Useful when the number of nested blocks (like ingress, egress, settings, tags) is not fixed.
+    variable "rules" {
+        default = [
+            {
+            name   = "ssh"
+            port   = 22
+            priority = 100
+            },
+            {
+            name   = "http"
+            port   = 80
+            priority = 200
+            }
+        ]
+        }
+
+        resource "azurerm_network_security_group" "nsg" {
+        name                = "my-nsg"
+        location            = azurerm_resource_group.rg.location
+        resource_group_name = azurerm_resource_group.rg.name
+
+        dynamic "security_rule" {
+            for_each = var.rules
+            content {
+            name                       = security_rule.value.name
+            priority                   = security_rule.value.priority
+            direction                  = "Inbound"
+            access                     = "Allow"
+            protocol                   = "Tcp"
+            source_port_range          = "*"
+            destination_port_range     = security_rule.value.port
+            source_address_prefix      = "*"
+            destination_address_prefix = "*"
+            }
+        }
+        }
+
+
+
+
+Count vs foreach
+    🔹 1. count
+            Simplest way to create multiple copies of a resource.
+            Accepts a number.
+            Creates resources with numeric indexes (0, 1, 2 …).
+
+                resource "azurerm_subnet" "example" {
+                    count                = 3
+                    name                 = "subnet-${count.index}"
+                    resource_group_name  = azurerm_resource_group.rg.name
+                    virtual_network_name = azurerm_virtual_network.vnet.name
+                    address_prefixes     = ["10.0.${count.index}.0/24"]
+                }
+
+
+    🔹 2. for_each
+            More flexible than count.
+            Works with maps or sets.
+            Creates resources with named keys instead of just numbers.
+                variable "subnets" {
+                default = {
+                    web  = "10.0.1.0/24"
+                    db   = "10.0.2.0/24"
+                    app  = "10.0.3.0/24"
+                }
+                }
+
+                resource "azurerm_subnet" "example" {
+                for_each             = var.subnets
+                name                 = each.key
+                resource_group_name  = azurerm_resource_group.rg.name
+                virtual_network_name = azurerm_virtual_network.vnet.name
+                address_prefixes     = [each.value]
+                }
+
+
+If block in terraform
+    condition ? value_if_true : value_if_false
+
+        variable "env" {
+            default = "dev"
+        }
+
+        resource "azurerm_storage_account" "example" {
+            name                     = var.env == "prod" ? "prodstorageacct" : "devstorageacct"
+            resource_group_name      = azurerm_resource_group.rg.name
+            location                 = azurerm_resource_group.rg.location
+            account_tier             = "Standard"
+            account_replication_type = var.env == "prod" ? "ZRS" : "LRS"
+        }
+
+
+Delete perticular resource
+    terraform destroy -target=azurerm_storage_account.example
+    Remove Resource from Code + Apply
+    terraform state rm (Stop Managing Without Deleting)
+        If you want to keep the resource in Azure but remove it from Terraform’s control:
+            terraform state rm azurerm_storage_account.example
+
+Provider vs provisionar
+    🔹 1. Provider
+            A plugin that allows Terraform to talk to a specific cloud, platform, or service.
+            Example: azurerm (Azure), aws, kubernetes, datadog.
+            Responsible for managing infrastructure resources (CRUD operations).
+            You define it in your config with credentials, region, etc.
+            Providers are the bridge between Terraform and the platform APIs.
+
+    🔹 2. Provisioner
+            Used inside a resource block to run scripts or commands on the created resource.
+            Think of them as a “bootstrapping” mechanism.
+            Examples: local-exec, remote-exec, file.
+            Example: Install NGINX on VM
+                resource "azurerm_linux_virtual_machine" "example" {
+                name     = "vm1"
+                size     = "Standard_B1s"
+                admin_username = "azureuser"
+                ...
+
+                provisioner "remote-exec" {
+                    inline = [
+                    "sudo apt-get update -y",
+                    "sudo apt-get install nginx -y"
+                    ]
+                }
+                }
+            👉 After VM is created, Terraform logs in via SSH and runs those commands.
+            ✅ Key Point: Provisioners are not recommended for general config — better to use tools like Ansible, Chef, Puppet.
+
+
+How to handle multiple update on terraform at same time
+    Use Remote Backend with State Locking
+        terraform {
+            backend "azurerm" {
+                resource_group_name   = "tfstate-rg"
+                storage_account_name  = "tfstateaccount"
+                container_name        = "tfstate"
+                key                   = "prod.terraform.tfstate"
+            }
+            }
+    Workspaces or Separate State Files
+
+
+Issues we can face at time of terraform plan
+    🔹 1. State File Related Issues
+            Drift → Actual infra != state file (someone changed resources manually in Azure/AWS).
+            Corrupted state file → due to failed runs or conflicts.
+            State locking → another user/process is holding the lock, so plan can’t run.
+            Missing state → running plan in a fresh repo without pulling remote state.
+    🔹 2. Authentication & Provider Issues
+            Invalid credentials (az login, AWS keys expired, Service Principal expired).
+            Wrong subscription/region → Terraform tries to compare resources in the wrong place.
+            Provider version mismatch (terraform init not re-run after provider upgrade).
+    🔹 3. Syntax & Configuration Issues
+            Invalid HCL syntax (typos, missing braces, wrong variable references).
+            Using count and for_each together incorrectly.
+            Bad interpolation ("${var.name}" not needed in TF 0.12+).
+            Unsupported arguments (using wrong provider version).
+    🔹 4. Dependency & Reference Issues
+            Circular dependency (resource A depends on B, and B depends on A).
+            Missing resources (plan fails because a resource output is referenced but not created yet).
+            Data sources failing because the resource doesn’t exist yet.
+    🔹 5. Variable & Module Issues
+            Variable not set (terraform plan asks for input if not provided).
+            Wrong variable type (string vs list vs map).
+            Modules with version mismatches or missing source.
+    🔹 6. External/System Issues
+            API rate limits from provider (Azure throttling, AWS API limits).
+            Network/DNS issues preventing Terraform from calling cloud API.
+            Lack of permissions → Terraform can’t read or list resources during plan.
+    🔹 7.   Between Config and Reality
+            If someone manually updates infra in Azure Portal/Console, terraform plan shows unexpected “to change” actions.
+            Example: You updated NSG rule manually in Azure → Terraform plan shows “Terraform wants to revert it.”
+Errors we can face at time of terraform apply
+    Error: A resource with the ID already exists
+    Error: Quota exceeded for cores in region eastus
+    Error: AuthorizationFailed: The client does not have authorization
+    Error: cannot destroy resource because dependent resources exist
+    Error: Failed to connect to remote host via SSH (provisioner)
+
+Terraform workspace module
+    A workspace is like a separate state file within the same Terraform configuration.
+    By default → only default workspace exists.
+        terraform workspace new dev
+        terraform workspace new prod
+        terraform workspace list
+        terraform workspace select dev
+    
+
+        variable "env" {
+            default = terraform.workspace
+        }
+
+        module "network" {
+            source     = "./modules/network"
+            vnet_name  = "vnet-${terraform.workspace}"
+            location   = "eastus"
+        }
+
+        terraform {
+            backend "azurerm" {
+                resource_group_name  = "tfstate-rg"
+                storage_account_name = "tfstatestorage"
+                container_name       = "tfstate"
+                key                  = "terraform-${terraform.workspace}.tfstate"
+            }
+        }
+
+
+
+Modules vs resources
+Lifecycle in terraform
+    A lifecycle block lets you control how Terraform handles a resource during create, update, and delete operations.
+    It is defined inside a resource block.
+    a) prevent_destroy -> Prevents Terraform from destroying a resource, even if you remove it from config.
+        ✅ Use case: critical resources like DB, storage with data.
+    b) ignore_changes -> Ignore changes to specific attributes of a resource. Terraform won’t try to update them even if changed manually.
+        If VM size changes manually → Terraform won’t try to revert.
+        ✅ Use case: attributes managed outside Terraform
+    c) create_before_destroy -> Used to replace a resource without downtime. Terraform will create new resource first, then destroy old.
+        ✅ Use case: VM, Load Balancer, Public IP replacement without downtime.
+    d) replace_triggered_by -> Force replacement of a resource when another resource or attribute changes.
+        ✅ Use case: Ensure VM recreates if its NIC changes.
+
+        resource "azurerm_storage_account" "example" {
+            name                     = "mystorageacct"
+            resource_group_name      = azurerm_resource_group.rg.name
+            location                 = azurerm_resource_group.rg.location
+            account_tier             = "Standard"
+            account_replication_type = "LRS"
+
+            lifecycle {
+                prevent_destroy = true
+                ignore_changes = [account_tier]
+                create_before_destroy = true
+                replace_triggered_by = [azurerm_resource_group.rg.location]
+            }
+        }
+
+
+Error we can face at terraform init
+    Wrong or missing backend config/credentials
+    Provider issues (version or download)
+    Module source problems
+    Version mismatches

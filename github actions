@@ -1,0 +1,40 @@
+name: Prepare Interview Notes
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+
+jobs:
+    format-notes:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.9'
+
+            - name: Install dependencies
+              run: |
+                pip install black
+
+            - name: Format notes
+              run: |
+                black .
+
+    deploy-notes:
+        runs-on: ubuntu-latest
+        needs: format-notes
+        steps:
+            - name: Checkout repository
+                uses: actions/checkout@v3
+
+            - name: Deploy Notes
+                run: |
+                    echo "Deploying notes..."
+                    # Add your deployment script here

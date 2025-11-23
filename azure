@@ -1,0 +1,76 @@
+application gateway:
+    🔹 1. Azure Load Balancer (Layer 4 - TCP/UDP)
+        Works at the Transport Layer (L4).
+        Distributes inbound/outbound traffic based on IP and port.
+        Two SKUs:
+            Basic Load Balancer → simple, for dev/test workloads, limited features.
+            Standard Load Balancer → highly available, supports zones, secure by default, better scaling, supports both inbound and outbound rules.
+        Supports:
+            Public Load Balancer → balances internet traffic to VMs.
+            Internal Load Balancer (ILB) → balances traffic inside a Virtual Network (VNet).
+        Use case: Balancing TCP/UDP traffic to backend VMs or VM Scale Sets.
+    🔹 2. Azure Application Gateway (Layer 7 - HTTP/HTTPS)
+        Works at the Application Layer (L7).
+        Provides application-aware load balancing.
+        Features:
+            SSL/TLS termination (offloading).
+            Path-based routing (/images → image servers, /api → API servers).
+            Host-based routing (multi-site hosting).
+            Web Application Firewall (WAF).
+            URL-based redirection & session affinity.
+        Use case: Web applications (HTTP/HTTPS) requiring routing and security features.
+    🔹 3. Azure Traffic Manager (DNS-based Global Load Balancer)
+        Works at the DNS level.
+        Routes client requests to the nearest or best-performing endpoint.
+        Uses different traffic-routing methods:
+            Priority (failover).
+            Weighted (load distribution).
+            Performance (lowest latency).
+            Geographic (based on region).
+            Subnet and multi-value routing.
+            Endpoints can be Azure, external services, or hybrid.
+        Use case: Global traffic distribution across regions.
+    🔹 4. Azure Front Door (Layer 7 - Global Application Delivery)
+        Works at Layer 7 (HTTP/HTTPS) but globally.
+        Provides:
+            Global load balancing.
+            Web Application Firewall (WAF).
+            SSL offloading.
+            Anycast-based routing.
+            Dynamic site acceleration (DSA).
+            Path- and host-based routing.
+            Unlike Traffic Manager (DNS-based), Front Door is real-time and works at the edge.
+        Use case: High-performance, global websites and APIs.
+    🔹 5. Azure NAT Gateway (Outbound Only)
+        Not a load balancer in the strictest sense, but often confused.
+        Provides outbound internet connectivity for VMs in private subnets.
+        Handles SNAT (Source Network Address Translation) at scale.
+        Doesn't distribute inbound traffic.
+        Use case: Ensure scalable outbound connections for large workloads.
+
+Private endpoint vs service endpoint
+    service endpoint:
+        Extends your VNet’s private IP space to an Azure service over Microsoft’s backbone network.
+        When enabled, traffic to that Azure service from your VNet uses Azure’s internal network instead of the public internet.
+        Key points:
+            Uses public IP of the service but traffic flows securely through Azure backbone.
+            No private IP is assigned to the service inside your VNet.
+            Access is controlled using VNet Service Endpoint Policies.
+            Easy to configure, no DNS changes needed.
+            Supported services: Azure Storage, Azure SQL Database, Cosmos DB, Key Vault, Event Hub, etc.
+        ✅ Use case:
+            If you want to secure access to an Azure PaaS service only from specific VNets, without exposing it publicly.
+    Private endpoint:
+        Assigns a private IP from your VNet to the Azure service (like Storage, SQL, Key Vault, etc.).
+        Effectively brings the PaaS resource into your VNet.
+        Traffic flows entirely within the VNet using that private IP.
+        Uses Private Link for secure connectivity.
+        Requires DNS configuration to resolve the service name to the private IP.
+        More secure because:
+            Public access to the service can be disabled completely.
+            Only accessible via private IP in your VNet (and peered VNets if allowed).
+        ✅ Use case:
+        If you want your Azure PaaS resource to be completely private, accessible only via your VNet, and you don’t want any public endpoint exposure.
+
+How we can make videos and images publically accessible from storage account
+

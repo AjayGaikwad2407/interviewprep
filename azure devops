@@ -1,0 +1,7 @@
+Run single task multiple time parallely
+Explain build pipeline
+Manage secret in pipeline
+If build is taking long time how we can reduce
+If while running build got error like disk space issue
+Declarative vs scripted pipeline
+stage vs jobs vs steps

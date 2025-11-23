@@ -1,0 +1,55 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$SubscriptionId
+)
+
+# Login and set subscription
+
+
+az login --client-id "<Your-Client-ID>" --tenant "<Your-Tenant-ID>" --password "<Your-Client-Secret>"
+
+az account set --subscription $SubscriptionId
+
+Write-Host "`nFetching Resource Groups..." -ForegroundColor Cyan
+
+# Get all resource groups
+$resourceGroups = az group list --query "[].name" -o tsv
+
+$results = @()
+
+foreach ($rg in $resourceGroups) {
+    Write-Host "Checking RG: $rg ..." -ForegroundColor Yellow
+
+    # Get PostgreSQL Single Servers
+    $psqlSingle = az postgres server list -g $rg -o json | ConvertFrom-Json
+
+    # Get PostgreSQL Flexible Servers
+    $psqlFlexible = az postgres flexible-server list -g $rg -o json | ConvertFrom-Json
+
+    # Combine both
+    foreach ($server in $psqlSingle) {
+        $results += [PSCustomObject]@{
+            ResourceGroup = $rg
+            ServerName    = $server.name
+            Type          = "Single Server"
+            Location      = $server.location
+            Version       = $server.version
+        }
+    }
+
+    foreach ($server in $psqlFlexible) {
+        $results += [PSCustomObject]@{
+            ResourceGroup = $rg
+            ServerName    = $server.name
+            Type          = "Flexible Server"
+            Location      = $server.location
+            Version       = $server.version
+        }
+    }
+}
+
+Write-Host "`n================= PostgreSQL Servers Found =================`n" -ForegroundColor Green
+$results | Format-Table -AutoSize
+
+# Export to CSV (optional)
+# $results | Export-Csv -Path "./psql_servers.csv" -NoTypeInformation

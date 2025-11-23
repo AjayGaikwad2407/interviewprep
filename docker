@@ -1,0 +1,66 @@
+Dockerfile vs container
+
+Reduce size of docker image
+    🔹 1. Choose a Smaller Base Image
+    🔹 2. Use Multi-Stage Builds
+        Build tools (compilers, SDKs) make images huge.
+        Use multi-stage builds: compile in one stage, then copy only the final binaries into a clean, small image.
+            # Stage 1: Build
+            FROM golang:1.21 AS builder
+            WORKDIR /app
+            COPY . .
+            RUN go build -o myapp
+
+            # Stage 2: Final (only the binary)
+            FROM alpine:3.19
+            COPY --from=builder /app/myapp /myapp
+            CMD ["/myapp"]
+        ✅ Cuts image size from hundreds of MB → few MB
+
+    🔹 3. Remove Unnecessary Files
+    🔹 4. Minimize Layers
+        Each RUN, COPY, or ADD creates a new layer.
+        Combine commands:
+        RUN apt-get update && apt-get install -y \
+            curl git \
+            && rm -rf /var/lib/apt/lists/*
+        Instead of multiple RUN instructions.        
+
+
+Cmd vs entrypoint
+    🔹 CMD
+        Specifies the default command (and arguments) that will run when the container starts.
+        Can be overridden by arguments you pass to docker run
+            FROM ubuntu
+            CMD ["echo", "Hello from CMD"]
+
+            docker run myimage echo "Hi Ajay"
+            # Output: Hi Ajay
+
+    🔹 ENTRYPOINT
+        Specifies the main executable for the container.
+        Cannot be overridden easily with docker run, unless you use --entrypoint.
+        Useful when you want your container to always run a specific program.    
+        
+        FROM ubuntu
+        ENTRYPOINT ["echo", "Hello from ENTRYPOINT"]
+
+        docker run myimage Hi Ajay
+        # Output: Hello from ENTRYPOINT Hi Ajay
+
+    🔹 CMD + ENTRYPOINT Together
+        You can combine both:
+            FROM ubuntu
+            ENTRYPOINT ["echo"]
+            CMD ["Hello from CMD"]
+        Rule:
+            ENTRYPOINT = the command
+            CMD = the default arguments
+
+Can we have multiple CMD in dockerfile
+
+
+
+Add vs copy
+
+Basic command to check logs
