@@ -1,7 +1,109 @@
 Run single task multiple time parallely
+  Define a Strategy: In your YAML pipeline, define a strategy block within your job. This strategy can use matrix or parallel to create multiple configurations for the same job.
+      jobs:
+    - job: MyParallelJob
+      strategy:
+        matrix:
+          config1:
+            myVariable: "valueA"
+          config2:
+            myVariable: "valueB"
+          config3:
+            myVariable: "valueC"
+      steps:
+      - task: MyCustomTask@1
+        inputs:
+          someInput: $(myVariable) # Use the variable from the matrix
+
+  In this example, MyCustomTask will run three times in parallel, each time with a different value for someInput derived from myVariable in the matrix.
+
+  Parallel Strategy (for more control over parallelism):
+      jobs:
+    - job: MyParallelJob
+      strategy:
+        parallel: 3 # Run 3 instances of this job in parallel
+      steps:
+      - task: MyCustomTask@1
+        inputs:
+          # Inputs can be dynamic based on a counter or other logic if needed
+          someInput: "dynamicValue" 
+  This will run the entire job (including MyCustomTask) three times in parallel. You might need to introduce dynamic logic within your task to differentiate between the parallel runs if required.
+
+  2. Script-Based Parallelism (within a single task): If your task is a script (e.g., PowerShell, Bash), you can implement parallelism directly within the script using language-specific features. 
+    PowerShell Example.
+        # MyParallelScript.ps1
+    Start-Job -ScriptBlock { # Your task logic here }
+    Start-Job -ScriptBlock { # Your task logic here }
+    Start-Job -ScriptBlock { # Your task logic here }
+    Get-Job | Wait-Job | Receive-Job
+
+
 Explain build pipeline
+  automated workflow that transforms source code into a deployable artifact.
+  1. Definition:
+    YAML Pipelines: Defined using YAML files stored alongside your code, offering version control, reusability, and easier management.
+    Classic Editor Pipelines: Configured through a visual interface within the Azure DevOps web portal.
+
+  2. Core Components:
+    Stages: Logical divisions of the pipeline workflow, such as "Build," "Test," and "Deploy."
+    Jobs: Units of work within a stage, often running on a specific agent and containing multiple steps.
+    Steps: Individual tasks or commands executed within a job, like compiling code, running tests, or publishing artifacts.
+    Tasks: Pre-built or custom actions that perform specific operations within a step (e.g., DotNetCoreCLI@2 for .NET operations).
+    Agents: Machines (Microsoft-hosted or self-hosted) where jobs and their steps are executed.
+
+  3. Workflow:
+    Triggering: Can be manually initiated or automatically triggered by events like code pushes to a repository branch or pull request creation.
+    Source Code Retrieval: Fetches the latest code from a version control system (e.g., Azure Repos, GitHub).
+    Building: Compiles the source code into executable binaries or packages.
+    Testing: Executes automated tests (unit tests, integration tests) to ensure code quality and functionality.
+    Publishing Artifacts: Stores the build output (e.g., compiled binaries, deployment packages) as an artifact, making it available for subsequent release pipelines.
+
 Manage secret in pipeline
+  1. Azure Key Vault Integration:
+  2. Secret Variables in Pipelines:
+  3. Secure Files:
+      Store sensitive files securely: If you need to use entire files containing sensitive data (e.g., certificates, configuration files), upload them to the "Secure files" section in your Azure DevOps Library.
+      Use in pipelines: Utilize the "Download Secure File" task in your pipeline to make the file available for use during execution.
+
+
 If build is taking long time how we can reduce
+
 If while running build got error like disk space issue
-Declarative vs scripted pipeline
+  A "disk space issue" during an Azure DevOps build indicates that the build agent, whether Microsoft-hosted or self-hosted, has insufficient storage to complete the build process. 
+  This can be caused by large source code repositories, extensive build outputs, downloaded dependencies, or temporary files generated during the build.
+  
+  Analyze Build Logs:
+    Enable system diagnostics and verbose logging in your pipeline to get detailed information about resource utilization, including disk space.
+    Search the logs for "Agent environment resources" entries to identify where disk space is being consumed.
+
+  Reduce Build Artifacts and Dependencies:
+    Minimize Source Code Size
+    Optimize Build Output
+    Manage Dependencies
+    Docker Image Optimization
+
+  Clean Up Build Environment:
+    Temporary Files
+    Agent Cleanup
+
+Declarative(YAML Pipeline) vs scripted pipeline(Classic Editor)
 stage vs jobs vs steps
+      # azure-pipelines.yml
+      trigger:
+      - main
+  
+      pool:
+        vmImage: 'ubuntu-latest'
+  
+      stages:
+      - stage: Build
+        jobs:
+        - job: BuildJob
+          steps:
+          - script: echo "Building the application..."
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'build'
+              projects: '**/*.csproj'
+
+
