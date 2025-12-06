@@ -59,10 +59,17 @@ Cmd vs entrypoint
             CMD = the default arguments
 
 Can we have multiple CMD in dockerfile
-
+While you can include multiple CMD instructions in a Dockerfile, only the last one will be evaluated and executed when a container is started from the image. 
+Docker processes instructions sequentially, and for CMD, ENTRYPOINT, and HEALTHCHECK, only the final instance takes effect.
 
 
 Add vs copy
+copy - Copies local files/directories from the host build context into the image.	
+       copies compressed files (.tar, .gz, etc.) as-is
+
+add  - Copies files/directories from the build context, URLs, or local archives into the image.
+       automatically extracts compressed local archives to the destination path.
+
 
 Basic command to check logs
 
