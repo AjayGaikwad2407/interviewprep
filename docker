@@ -1,4 +1,5 @@
 Dockerfile vs container
+ A Dockerfile defines how to build an image, while a container is the running instance of an image.
 
 Reduce size of docker image
     🔹 1. Choose a Smaller Base Image
