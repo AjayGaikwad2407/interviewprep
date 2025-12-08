@@ -56,3 +56,21 @@ git checkout -b branchname <commit_id>
 
 You merged wrong branch into main. How do you undo?
 git revert -m 1 <merge_commit_id>
+
+git pull and git fetch diff - 
+git fetch
+    Downloads changes to local repository (remote-tracking branches)
+    Working Directory Not modified
+    Merge Conflicts - No, as no merge occurs
+    Control - Provides more control, allowing review before merging
+    Use git fetch when you want to see what changes are available on the remote without altering your current work, allowing for a review before merging.
+
+git pull
+    Downloads changes and merges them into current branch
+    Working Directory Modified (merged)
+    Merge Conflicts - Possible, if conflicting changes exist
+    Control - Less control, as changes are merged immediately
+    Use git pull when you are confident that you want to integrate the latest changes from the remote directly into your current branch and are prepared to handle potential merge conflicts.
+
+
+
