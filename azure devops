@@ -106,4 +106,12 @@ stage vs jobs vs steps
               command: 'build'
               projects: '**/*.csproj'
 
+Service principal and Service Connection 
+  Service Principal is an identity for apps/automation in Azure (like a user account for code), defining what it can do (permissions/roles) in a tenant, 
+    Think of the SP as the "who/what"
+
+  Service Connection in Azure DevOps is the configured link (like a saved login) using a Service Principal to let your pipelines securely connect to Azure resources (VMs, Web Apps, Key Vault) for automated deployments/tasks. 
+    Think of the SC as the "how to reach". 
+
+
 
